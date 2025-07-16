@@ -23,13 +23,16 @@ pub fn build(b: *std.Build) !void {
         },
     });
 
-    const lib = b.addStaticLibrary(.{
+    const lib = b.addLibrary(.{
         .name = "harfbuzz",
-        .target = target,
-        .optimize = optimize,
+        .linkage = .static,
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+            .link_libcpp = true,
+        }),
     });
-    lib.linkLibC();
-    lib.linkLibCpp();
     lib.addIncludePath(upstream.path("src"));
     module.addIncludePath(upstream.path("src"));
 
@@ -83,9 +86,7 @@ pub fn build(b: *std.Build) !void {
     {
         const test_exe = b.addTest(.{
             .name = "test",
-            .root_source_file = b.path("main.zig"),
-            .target = target,
-            .optimize = optimize,
+            .root_module = module,
         });
         test_exe.linkLibrary(lib);
 
